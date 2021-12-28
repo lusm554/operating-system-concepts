@@ -1,2 +1,5 @@
 # Inner utils
 ssh.sh
+
+# C files 
+*.out
