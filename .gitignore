@@ -3,3 +3,6 @@ ssh.sh
 
 # C files 
 *.out
+
+# Vim
+*.swp
