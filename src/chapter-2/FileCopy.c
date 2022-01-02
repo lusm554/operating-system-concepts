@@ -13,15 +13,14 @@ Input:
 #define EPERM   1 // operation not permitted (source not exist)
 
 int main(int argc, char *argv[]) {
-  // bc first arg is name of the script
-  if (argc < 3) return ENOENT;
+  // check amount of args
+  if (argc != 3) return ENOENT;
   
   char *src = argv[1];  
   char *dest = argv[2];  
-
-  if (access(src, F_OK) != 0) {
-    return EPERM;
-  }
+  
+  // check file existence 
+  if (access(src, F_OK) != 0) return EPERM;
 
   // Read
   FILE *inputp;
@@ -32,7 +31,7 @@ int main(int argc, char *argv[]) {
   FILE *outputp;
   outputp = fopen(dest, "w");
 
-
+  // Copy data
   while ((inputcc = fgetc(inputp)) != EOF)
     fputc(inputcc, outputp);
 
