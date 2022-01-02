@@ -5,5 +5,15 @@ ssh.sh
 *.out
 *.o
 
+# Linux module
+*.symvers
+*.order
+*.mod
+*.mod.*
+*.ko
+
 # Vim
 *.swp
+
+# Secret files
+.*
