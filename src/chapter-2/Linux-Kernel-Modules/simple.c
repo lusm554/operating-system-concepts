@@ -29,11 +29,11 @@ int simple_init(void) {
 
 /* This function is called when the module is removed. */
 void simple_exit(void) {
-  int time = (JIFFIES_AT_INIT - jiffies) * 1000 / HZ; // TODO: FIX
+  int time = (jiffies - JIFFIES_AT_INIT) / HZ;
 
   /* Print jiffies and number of seconds that have elapsed since module loaded. */
-  printk(KERN_INFO "Jiffies in exit: %u\n", time);
-  printk(KERN_INFO "Number of seconds since module loaded: %u\n", jiffies);
+  printk(KERN_INFO "Jiffies in exit: %u\n", jiffies);
+  printk(KERN_INFO "Number of seconds since module loaded: %u\n", time);
 
   printk(KERN_INFO "Removing Kernel Module\n");
 }
