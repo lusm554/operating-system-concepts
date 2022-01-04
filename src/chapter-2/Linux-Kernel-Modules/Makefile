@@ -1,5 +1,6 @@
 obj-m += hello.o
 obj-m += simple.o
+obj-m += jiffies
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 clean:
