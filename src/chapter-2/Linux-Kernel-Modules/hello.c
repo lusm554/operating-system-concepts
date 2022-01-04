@@ -9,11 +9,11 @@
 
 ssize_t proc_read(struct file *file, char __user *usr_buf, size_t count, loff_t *pos);
 
+/* .read – name of the function that will be called whenever /proc/hello is read. */
 static struct file_operations proc_ops = {
   .owner = THIS_MODULE,
   .read = proc_read,
 };
-
 
 /* This function is called when the module is loaded. */
 int proc_init(void) {
@@ -33,12 +33,16 @@ void proc_exit(void) {
   printk(KERN_INFO "Removing Kernel Module \"hello\"\n"); 
 }
 
-/* This function is called each time "/proc/hello" is read. */
+/*
+ * Each time "/proc/hello" file is read, this function is called repeatedly until it returns 0.
+ * So there must be logic to ensure that this function returns 0 once it has called.
+ */ 
 ssize_t proc_read(struct file *file, char __user *usr_buf, size_t count, loff_t *pos) {
   int rv = 0;
   char buffer[BUFFER_SIZE];
   static int completed = 0;
 
+  // save from infinity loop
   if (completed) {
     completed = 0;
     return 0;
