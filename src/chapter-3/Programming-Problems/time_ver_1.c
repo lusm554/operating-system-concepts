@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 
@@ -19,7 +20,22 @@ int main(int argc, char **argv) {
     fprintf(stderr, "usage: ./time [command_to_execute]\n");
     return 1;
   }
-  
+
+  /* SHARED MEMORY */
+  int fd = shm_open(NAME, O_CREAT | O_EXCL | O_RDWR, 0666);
+  if (fd < 0) {
+    perror("shm_open()");
+    return EXIT_FAILURE;
+  }
+
+  if (ftruncate(fd, SIZE) < 0) {
+    perror("ftruncate()");
+    return EXIT_FAILURE; 
+  }
+
+  int *ptr = mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  //printf("shm address: %p\n", ptr);
+
   /* CREATE CHILD PROCESS */
   pid_t pid;
   pid = fork();
@@ -34,26 +50,8 @@ int main(int argc, char **argv) {
     struct timeval start;
     gettimeofday(&start, NULL);
 
-    /* SHARED MEMORY */
-    int fd = shm_open(NAME, O_CREAT | O_EXCL | O_RDWR, 0666);
-    if (fd < 0) {
-      perror("shm_open()");
-      return EXIT_FAILURE;
-    }
-
-    if (ftruncate(fd, SIZE) < 0) {
-      perror("ftruncate()");
-      return EXIT_FAILURE; 
-    }
-
-    int *ptr = mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    //printf("sender mapped address: %p\n", ptr);
-
     ptr[0] = start.tv_sec;
     ptr[1] = start.tv_usec;    
-
-    munmap(ptr, SIZE);
-    close(fd);
 
     //execlp("/bin/ls", "ls", NULL);
     system(argv[1]);
@@ -61,25 +59,15 @@ int main(int argc, char **argv) {
 
   if (pid > 0) { // parent
     wait(NULL);
-    //printf("child complete\n");
 
-    int fd = shm_open(NAME, O_RDONLY, 0666);
-    if (fd < 0) {
-      perror("shm_open() recv");
-      return EXIT_FAILURE;
-    }
-    
-    int *ptr = mmap(0, SIZE, PROT_READ, MAP_SHARED, fd, 0);
-    //printf("receiver mapped address: %p\n", ptr);
-
+    /* TIMEVAL */
     struct timeval start, end;
+    gettimeofday(&end, NULL);
 
     start.tv_sec = ptr[0];
     start.tv_usec = ptr[1];
 
-    printf("%d, %d\n", start.tv_sec, start.tv_usec);
-
-    printf("\n\n\n%s", to_str_view(elapsed(&start, &end)));
+    printf("%s", to_str_view(elapsed(&start, &end)));
 
     munmap(ptr, SIZE);
     close(fd);
@@ -95,7 +83,7 @@ char *to_str_view(int all_msecs) {
   int msec = all_msecs%(int)1e+6;
 
   char *str;
-  sprintf(str, "Elapsed time: %u.%u\n", sec, msec);
+  sprintf(str, "\nElapsed time: %u.%u\n", sec, msec);
 
   return str;
 }
