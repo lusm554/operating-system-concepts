@@ -10,7 +10,8 @@
 #include <sys/mman.h>
 
 #define NAME "/Collatz_conjecture"
-#define SIZE 256 
+#define MAX_SEQ_SIZE 500
+#define SIZE sizeof(int) * MAX_SEQ_SIZE
 
 long to_num(char *str);
 
@@ -52,26 +53,31 @@ int main(int argc, char **argv) {
   if (pid == 0) { // child
     int i = 0;
     while (num != 1) {
-      printf("i: %d num: %d\n", i, num);
       ptr[i] = num;
 
-      if (num % 2 == 0) {
+      if (num % 2 == 0)
         num /= 2;
-      } else {
+      else
         num = 3 * num + 1;
-      }
+    
+      if (i == MAX_SEQ_SIZE)
+        return 1;
+
       i++;
     }
 
     ptr[i] = 1;
+    ptr[++i] = -1;
   }
 
   if (pid > 0) { // parent
     wait(NULL);
     
-    for (int i = 0; i < 10; i++) {
-      printf("n: %d\n", ptr[i++]);
-    }
+    int i = 0;
+    while (ptr[i] != -1) {
+      printf("%d ", ptr[i++]);
+    } 
+    printf("\n");
 
     // remove shm
     munmap(ptr, SIZE);
