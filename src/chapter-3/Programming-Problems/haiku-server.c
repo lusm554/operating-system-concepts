@@ -44,35 +44,35 @@ int main(void) {
   } 
 
 
-  for (p = servinfo; p != NULL; p = p->ai_next) {
+  for (p = servinfo; p != NULL; p = p->ai_next) { // get server address 
     if (p->ai_family == AF_INET) // IPv4
       break;
   }
 
-  if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+  if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) { // get file descriptor
     perror("server: socket");
     return 1;
   }
 
-  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) { // set options for socket
     perror("setsockopt");
     exit(1);
   }
 
-  if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+  if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) { // bind socket
     close(sockfd);
     perror("server: bind");
     exit(1);
   }
 
-  freeaddrinfo(servinfo);
+  freeaddrinfo(servinfo); // gree linked-list of other server addresses
 
   if (p == NULL) {
     fprintf(stderr, "server: failed to bind\n");
     exit(1);
   }
 
-  if (listen(sockfd, BACKLOG) == -1) {
+  if (listen(sockfd, BACKLOG) == -1) { // start listen for connections
     perror("listen");
     exit(1);
   }
@@ -95,7 +95,7 @@ int main(void) {
       continue;
     }
 
-    inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
+    inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s); // convert address from binary to text form
     printf("server: got connection from %s\n", s);
 
     if (!fork()) { // this is the child process
@@ -128,5 +128,4 @@ void *get_in_addr(struct sockaddr *sa) {
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
-
 
