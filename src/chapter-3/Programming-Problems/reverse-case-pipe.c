@@ -11,9 +11,9 @@
 void read_pipe(int *fd, char *read_msg);
 void write_pipe(int *fd, char *write_msg);
 
-int main(void) {
+int main(int argc, char **argv) {
   // parent buf 
-  char write_msg_p[SIZE] = "hello";
+  char write_msg_p[SIZE] = "hello13";
   char read_msg_p[SIZE];
   // child buf
   char write_msg_c[SIZE] = "not hello";
@@ -44,14 +44,25 @@ int main(void) {
 
     read_pipe(fd_c, read_msg_c);
     printf("parent: read '%s'\n", read_msg_c);
-
   }
 
   if (pid == 0 ) { // child 2
     read_pipe(fd_p, read_msg_p);
     printf("child: read '%s'\n", read_msg_p);
+    
+    int c = 0;
+    char ch;
+    while (read_msg_p[c] != '\0') {
+      ch = read_msg_p[c];
+      if (ch >= 'A' && ch <= 'Z')
+        write_msg_p[c] += 32; 
+      else if (ch >= 'a' && ch <= 'z')
+        write_msg_p[c] -= 32; 
 
-    write_pipe(fd_c, write_msg_c);
+      c++;
+    }
+      
+    write_pipe(fd_c, write_msg_p);
   }
 
   return 0;
