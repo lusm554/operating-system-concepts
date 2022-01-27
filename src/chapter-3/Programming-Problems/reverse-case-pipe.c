@@ -13,10 +13,12 @@ void write_pipe(int *fd, char *write_msg);
 
 int main(int argc, char **argv) {
   // parent buf 
-  char write_msg_p[SIZE] = "hello13";
+  char write_msg_p[SIZE];
+  memcpy(write_msg_p, argv[1], strlen(argv[1]));
   char read_msg_p[SIZE];
+
   // child buf
-  char write_msg_c[SIZE] = "not hello";
+  char write_msg_c[SIZE];
   char read_msg_c[SIZE];
 
   int fd_p[2]; // parent pipe
