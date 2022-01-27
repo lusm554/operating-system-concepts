@@ -8,9 +8,8 @@
 #define READ_END 0
 #define WRITE_END 1
 
-
-void write(fd, &read_msg);
-void read(fd, &write_msg);
+void read_pipe(int *fd, char *read_msg);
+void write_pipe(int *fd, char *write_msg);
 
 int main(void) {
   // parent buf 
@@ -39,46 +38,34 @@ int main(void) {
   }
 
   if (pid > 0) { // parent 1
-    close(fd_p[READ_END]);
-
-    write(fd_p[WRITE_END], write_msg_p, strlen(write_msg_p) + 1);
-
-    close(fd_p[WRITE_END]);
+    write_pipe(fd_p, write_msg_p);
 
     wait(NULL);
 
-    close(fd_c[WRITE_END]);
-    
-    read(fd_c[READ_END], read_msg_c, SIZE);
+    read_pipe(fd_c, read_msg_c);
     printf("parent: read '%s'\n", read_msg_c);
-
-    close(fd_c[READ_END]); 
 
   }
 
   if (pid == 0 ) { // child 2
-    close(fd_p[WRITE_END]);
-    
-    read(fd_p[READ_END], read_msg_p, SIZE);
+    read_pipe(fd_p, read_msg_p);
     printf("child: read '%s'\n", read_msg_p);
 
-    close(fd_p[READ_END]);
-
-    close(fd_c[READ_END]);
-
-    write(fd_c[WRITE_END], write_msg_c, strlen(write_msg_c) + 1);
-
-    close(fd_c[WRITE_END]);
+    write_pipe(fd_c, write_msg_c);
   }
 
   return 0;
 }
 
-void write(fd, &read_msg) {
-   
+void write_pipe(int *fd, char *write_msg) {
+  close(fd[READ_END]);
+  write(fd[WRITE_END], write_msg, strlen(write_msg) + 1);
+  close(fd[WRITE_END]);
 }
 
-void read(fd, &write_msg) {
-
+void read_pipe(int *fd, char *read_msg) {
+  close(fd[WRITE_END]);
+  read(fd[READ_END], read_msg, SIZE);
+  close(fd[READ_END]);
 }
 
