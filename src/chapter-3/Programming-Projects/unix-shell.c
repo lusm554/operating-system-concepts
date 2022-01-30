@@ -1,6 +1,10 @@
 #include <stdio.h>
-#include <errno.h>
-#include <limits.h>
+#include <unistd.h>
+#include <errno.h> // errno
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_LINE 80 /* The max length of command */
 
 /*
  * errno
@@ -13,13 +17,25 @@
  */
 
 int main(void) {
-  printf("%llu\n", ULLONG_MAX);
-
-  //errno = ERANGE;
-  if (errno != 0) {
-    perror("math, math, math...");
-  }
+  char line[MAX_LINE]; /* input line */
+  char *args[MAX_LINE/2 + 1]; /* command line arguments */
+  int should_run = 1; /* flag to determine when to exit program */
   
+
+  while (should_run) {
+    printf("osh>");
+    fflush(stdout);
+      
+    fgets(line, sizeof(line), stdin);
+    
+    if (errno != 0) {
+      perror("fgets");
+    }
+
+    if (strncmp(line, "exit", 4) == 0)
+      break;
+  }
+
   return 0;
 }
 
