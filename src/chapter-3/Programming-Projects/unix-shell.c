@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <errno.h>
+#include <limits.h>
 
 /*
  * errno
@@ -12,9 +13,9 @@
  */
 
 int main(void) {
+  printf("%llu\n", ULLONG_MAX);
 
-  errno = ERANGE;
-  
+  //errno = ERANGE;
   if (errno != 0) {
     perror("math, math, math...");
   }
