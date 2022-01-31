@@ -6,6 +6,8 @@
 
 #define MAX_LINE 80 /* The max length of command */
 
+char **split(char line[MAX_LINE], char *list[MAX_LINE]);
+
 /*
  * errno
  * 
@@ -21,21 +23,34 @@ int main(void) {
   char *args[MAX_LINE/2 + 1]; /* command line arguments */
   int should_run = 1; /* flag to determine when to exit program */
   
-
   while (should_run) {
     printf("osh>");
     fflush(stdout);
       
-    fgets(line, sizeof(line), stdin);
-    
+    fgets(line, sizeof(line), stdin); /* get line from stdin */
     if (errno != 0) {
       perror("fgets");
     }
 
-    if (strncmp(line, "exit", 4) == 0)
+    if (strncmp(line, "exit", 4) == 0) /* check first four chars on 'exit' */
       break;
+
+    split(line, args); /* parse tokens */
   }
 
   return 0;
+}
+
+char **split(char line[MAX_LINE], char *list[MAX_LINE]) {
+  char *token;
+  int i = 0;
+
+  if ((token = strtok(line, " ")) != NULL) {
+    do {
+      list[i++] = token;
+    } while ((token = strtok(NULL, " ")) != NULL);
+  }   
+
+  return list;
 }
 
