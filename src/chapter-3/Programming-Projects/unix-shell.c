@@ -26,7 +26,7 @@ int main(void) {
   while (should_run) {
     printf("osh>");
     fflush(stdout);
-      
+
     fgets(line, sizeof(line), stdin); /* get line from stdin */
     if (errno != 0) {
       perror("fgets");
@@ -36,6 +36,14 @@ int main(void) {
       break;
 
     split(line, args); /* parse tokens */
+    
+    /*
+    int i = 0;
+    do 
+      printf("w: %s\n", args[i]);
+    while (args[i++] != '\0');
+    */
+    printf("w1: %sn", args[1]);
   }
 
   return 0;
@@ -49,8 +57,10 @@ char **split(char line[MAX_LINE], char *list[MAX_LINE]) {
     do {
       list[i++] = token;
     } while ((token = strtok(NULL, " ")) != NULL);
+    list[i] = '\0';
+    return list;
   }   
-
-  return list;
+  
+  exit(1);
 }
 
