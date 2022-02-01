@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_LINE 80 /* The max length of command */
+#define MAX_LINE 256 /* The max length of command */
 
 /*
  * errno
@@ -16,26 +16,63 @@
  *  ERANGE   Range error (from math)
  */
 
-int main(void)
-{
-  char line[MAX_LINE]; /* input line */
-  char *args[MAX_LINE/2 + 1]; /* command line arguments */
-  int should_run = 1; /* flag to determine when to exit program */
+char *read_line(void);
+
+int main(void) {
+  char *line;
+  char **args;
+  int should_run = 1;
   
   while (should_run) {
     printf("osh>");
     fflush(stdout);
-
-    fgets(line, sizeof(line), stdin); /* get line from stdin */
+    line = read_line();
+    
+    /*
+    fgets(&line, sizeof(line), stdin); // get line from stdin
     if (errno != 0) {
       perror("fgets");
     }
 
-    if (strncmp(line, "exit", 4) == 0) {/* check first four chars on 'exit' */
+    */
+    if (strncmp(line, "exit", 4) == 0) {// check first four chars on 'exit' 
+      free(line);
       break;
     }
+    free(line);
   }
 
   return 0;
 }
 
+char *read_line(void) {
+  char *line = malloc(sizeof(char) * MAX_LINE);
+  int i = 0;
+  int c;
+  
+  if (!line) {
+    perror("malloc");
+    exit(EXIT_FAILURE);
+  }
+
+  while (1) {
+    // Read char from stdin.
+    c = getchar();
+    printf("c: %c\n", c);
+
+    // If get EOF, replace it will null char and return.
+    if (c == EOF || c == '\n') {
+      line[i] = '\0';
+      return line;
+    } else {
+      line[i] = c;
+    }
+    i++;
+
+    // If input exceeded the line buffer, error.
+    if (i >= MAX_LINE) {
+      perror("too big line");
+      exit(EXIT_FAILURE);
+    }
+  }
+}
