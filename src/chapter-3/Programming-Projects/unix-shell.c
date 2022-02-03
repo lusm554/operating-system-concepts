@@ -4,7 +4,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_LINE 256 /* The max length of command */
+#define MAX_LINE  256 /* The max length of command */
+#define MAX_TOKEN 64
+#define TOK_DELIM " \t\r\n\a"
 
 /*
  * errno
@@ -17,6 +19,7 @@
  */
 
 char *read_line(void);
+char **split_line(char *line);
 
 int main(void) {
   char *line;
@@ -25,21 +28,21 @@ int main(void) {
   
   while (should_run) {
     printf("osh>");
+
+    // Calls force the output to standard output.
     fflush(stdout);
     line = read_line();
+    args = split_line(line);
     
-    /*
-    fgets(&line, sizeof(line), stdin); // get line from stdin
-    if (errno != 0) {
-      perror("fgets");
-    }
-
-    */
-    if (strncmp(line, "exit", 4) == 0) {// check first four chars on 'exit' 
+    // Check first four chars on 'exit'.
+    if (strncmp(line, "exit", 4) == 0) {
       free(line);
+      free(args);
       break;
     }
+
     free(line);
+    free(args);
   }
 
   return 0;
@@ -58,7 +61,6 @@ char *read_line(void) {
   while (1) {
     // Read char from stdin.
     c = getchar();
-    printf("c: %c\n", c);
 
     // If get EOF, replace it will null char and return.
     if (c == EOF || c == '\n') {
@@ -76,3 +78,31 @@ char *read_line(void) {
     }
   }
 }
+
+char **split_line(char *line) {
+  char **tokens = malloc(MAX_TOKEN * sizeof(char *));
+  char *token;
+  int i; 
+
+  if (!tokens) {
+    perror("malloc");
+    exit(EXIT_FAILURE);
+  }
+
+  token = strtok(line, TOK_DELIM);
+  while (token != NULL) {
+    tokens[i] = token;
+    i++;
+
+    if (i >= MAX_TOKEN * sizeof(char *)) {
+      perror("too big token");
+      exit(EXIT_FAILURE);
+    }
+
+    token = strtok(NULL, TOK_DELIM);
+  }
+
+  tokens[i] = NULL;
+  return tokens;
+}
+
