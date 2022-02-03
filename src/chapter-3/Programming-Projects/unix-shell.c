@@ -82,7 +82,7 @@ char *read_line(void) {
 char **split_line(char *line) {
   char **tokens = malloc(MAX_TOKEN * sizeof(char *));
   char *token;
-  int i; 
+  int i = 0;
 
   if (!tokens) {
     perror("malloc");
