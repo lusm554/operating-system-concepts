@@ -36,9 +36,7 @@ int main(void) {
     
     // Check first four chars on 'exit'.
     if (strncmp(line, "exit", 4) == 0) {
-      free(line);
-      free(args);
-      break;
+      should_run = 0;
     }
 
     free(line);
