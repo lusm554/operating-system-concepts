@@ -3,6 +3,7 @@
 #include <errno.h> // errno
 #include <string.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
 #define MAX_LINE  256 /* The max length of command */
 #define MAX_TOKEN 64
@@ -20,6 +21,8 @@
 
 char *read_line(void);
 char **split_line(char *line);
+int execute(char **args);
+int launch(char **args);
 
 int main(void) {
   char *line;
@@ -36,8 +39,12 @@ int main(void) {
     
     // Check first four chars on 'exit'.
     if (strncmp(line, "exit", 4) == 0) {
-      should_run = 0;
+      free(line);
+      free(args);
+      break;
     }
+
+    should_run = execute(args);
 
     free(line);
     free(args);
@@ -102,5 +109,43 @@ char **split_line(char *line) {
 
   tokens[i] = NULL;
   return tokens;
+}
+
+int execute(char **args) {
+  // An empty command was entered.
+  if (args[0] == NULL) {
+    return 1;
+  }
+
+  return launch(args);
+}
+
+int launch(char **args) {
+  pid_t pid, wpid;
+  int status;
+  
+  pid = fork();
+
+  // Child process.
+  if (pid == 0) {
+    if (execvp(args[0], args) == -1) {
+      perror("execvp");
+    }
+    exit(EXIT_FAILURE);
+  }
+
+  // Parent process.
+  if (pid > 0) {
+    do {
+      wpid = waitpid(pid, &status, WUNTRACED);
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  }
+
+  // Error forking.
+  if (pid < 0) {
+    perror("fork");
+  }
+
+  return 1;
 }
 
