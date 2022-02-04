@@ -22,7 +22,7 @@
 char *read_line(void);
 char **split_line(char *line);
 int execute(char **args);
-int launch(char **args);
+int launch(char **args, int isBackground);
 
 int main(void) {
   char *line;
@@ -117,10 +117,18 @@ int execute(char **args) {
     return 1;
   }
 
-  return launch(args);
+  int isBackground;
+  int i = 0;
+  while (args[i] != NULL) {
+    if (strncmp(args[i++], "&", 1) == 0 && args[i+1] == NULL) {
+      isBackground = 1; 
+    }
+  }
+
+  return launch(args, isBackground);
 }
 
-int launch(char **args) {
+int launch(char **args, int isBackground) {
   pid_t pid, wpid;
   int status;
   
@@ -128,6 +136,7 @@ int launch(char **args) {
 
   // Child process.
   if (pid == 0) {
+    printf("\n");
     if (execvp(args[0], args) == -1) {
       perror("execvp");
     }
