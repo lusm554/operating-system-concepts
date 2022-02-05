@@ -21,13 +21,23 @@
 
 char *read_line(void);
 char **split_line(char *line);
-int execute(char **args);
-int launch(char **args, int isBackground);
+int execute(char **args, char**hist);
+int launch(char **args, int isBackground, char **hist);
+
+int IsHistExist = 0;
+int isBackground = 0;
 
 int main(void) {
   char *line;
   char **args;
   int should_run = 1;
+  char **hist = malloc(MAX_TOKEN * sizeof(char *));
+
+  // Check history object.
+  if (!hist) {
+    perror("malloc");
+    exit(EXIT_FAILURE);
+  }
   
   while (should_run) {
     printf("osh>");
@@ -44,7 +54,7 @@ int main(void) {
       break;
     }
 
-    should_run = execute(args);
+    should_run = execute(args, hist);
 
     free(line);
     free(args);
@@ -111,15 +121,26 @@ char **split_line(char *line) {
   return tokens;
 }
 
-int execute(char **args) {
+int execute(char **args, char**hist) {
   // An empty command was entered.
   if (args[0] == NULL) {
     return 1;
   }
 
-  // Check for &
-  int isBackground = 0, i = 0;
+  // Check for '!!', run previous command
+  if (strncmp(args[0], "!!", 2) == 0 ) {
+    if (!IsHistExist) {
+      printf("No commands in history.\n");
+      return 1;
+    }
+
+    return launch(hist, isBackground, hist);
+  }
+
+  // Check for &.
+  int i = 0;
   while (args[i] != NULL) {
+    printf("ebat %s\n", args[i]);
     char *temp = args[i] + strlen(args[i]) - 1;
     if (strncmp(temp, "&", 1) == 0 && args[i+1] == NULL) {
       isBackground = 1; 
@@ -134,10 +155,10 @@ int execute(char **args) {
     i++;
   }
 
-  return launch(args, isBackground);
+  return launch(args, isBackground, hist);
 }
 
-int launch(char **args, int isBackground) {
+int launch(char **args, int isBackground, char **hist) {
   pid_t pid, wpid;
   int status;
   
@@ -164,6 +185,10 @@ int launch(char **args, int isBackground) {
       } while (!WIFEXITED(status) && !WIFSIGNALED(status));   
     } 
 
+    // Save current command to history.
+    strncpy(hist, args, sizeof(hist));
+    IsHistExist = 1;
+    isBackground = 0;
   }
 
   // Error forking.
