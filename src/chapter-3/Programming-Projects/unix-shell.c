@@ -117,12 +117,21 @@ int execute(char **args) {
     return 1;
   }
 
-  int isBackground;
-  int i = 0;
+  // Check for &
+  int isBackground = 0, i = 0;
   while (args[i] != NULL) {
-    if (strncmp(args[i++], "&", 1) == 0 && args[i+1] == NULL) {
+    char *temp = args[i] + strlen(args[i]) - 1;
+    if (strncmp(temp, "&", 1) == 0 && args[i+1] == NULL) {
       isBackground = 1; 
+      if (strlen(args[i]) == 1) {
+        args[i] = NULL;
+      } else {
+        args[i][strlen(args[i]) - 1] = '\0';
+      }
+
+      break;
     }
+    i++;
   }
 
   return launch(args, isBackground);
@@ -136,7 +145,10 @@ int launch(char **args, int isBackground) {
 
   // Child process.
   if (pid == 0) {
-    printf("\n");
+    if (isBackground) {
+      printf("\n");
+    }
+
     if (execvp(args[0], args) == -1) {
       perror("execvp");
     }
@@ -145,9 +157,13 @@ int launch(char **args, int isBackground) {
 
   // Parent process.
   if (pid > 0) {
-    do {
-      wpid = waitpid(pid, &status, WUNTRACED);
-    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    if (!isBackground) {
+      // Waiting for child (command) process.
+      do {
+        wpid = waitpid(pid, &status, WUNTRACED);
+      } while (!WIFEXITED(status) && !WIFSIGNALED(status));   
+    } 
+
   }
 
   // Error forking.
