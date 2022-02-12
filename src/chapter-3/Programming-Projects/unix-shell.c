@@ -25,7 +25,6 @@ int execute(char **args, char**hist);
 int launch(char **args, int isBackground, char **hist);
 
 int IsHistExist = 0;
-int isBackground = 0;
 
 int main(void) {
   char *line;
@@ -134,11 +133,16 @@ int execute(char **args, char**hist) {
       return 1;
     }
 
-    return launch(hist, isBackground, hist);
+    int i = 0;
+    while (hist[i] != NULL) {
+      printf("%s\n", hist[i++]);
+    }
+
+    return launch(hist, 0, hist);
   }
 
   // Check for &.
-  int i = 0;
+  int isBackground = 0, i = 0;
   while (args[i] != NULL) {
     printf("ebat %s\n", args[i]);
     char *temp = args[i] + strlen(args[i]) - 1;
@@ -161,6 +165,7 @@ int execute(char **args, char**hist) {
 int launch(char **args, int isBackground, char **hist) {
   pid_t pid, wpid;
   int status;
+  hist = strdup(args);
   
   pid = fork();
 
@@ -186,9 +191,9 @@ int launch(char **args, int isBackground, char **hist) {
     } 
 
     // Save current command to history.
-    strncpy(hist, args, sizeof(hist));
+    //strncpy(hist, args, sizeof(hist));
+
     IsHistExist = 1;
-    isBackground = 0;
   }
 
   // Error forking.
