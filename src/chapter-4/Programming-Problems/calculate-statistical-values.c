@@ -15,12 +15,17 @@ struct arg_struct {
   int len;
 } *args;
 
-int main() {
-  int test[] = {1, 2, 3, 4, 5};
+int main(int argc, char **argv) {
+  int arr[argc-1];
   args = malloc((int)sizeof(struct arg_struct));
 
-  args->arr = test;
-  args->len = (int)(sizeof(test)/sizeof(int));
+  for (int i = 1; i < argc; i++) {
+    arr[i-1] = atoi(argv[i]);
+  }
+
+  args->arr = arr;
+  args->len = (int)(sizeof(arr)/sizeof(int));
+
 
   for (int i = 0; i < 3; i++) {
     pthread_t tid; // the thread identifier
